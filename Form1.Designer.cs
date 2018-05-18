@@ -31,6 +31,7 @@
             this.buttonStart = new System.Windows.Forms.Button();
             this.textBoxProcessed = new System.Windows.Forms.TextBox();
             this.textBox2 = new System.Windows.Forms.TextBox();
+            this.comboBoxDriveList = new System.Windows.Forms.ComboBox();
             this.SuspendLayout();
             // 
             // buttonStart
@@ -57,11 +58,21 @@
             this.textBox2.Size = new System.Drawing.Size(75, 20);
             this.textBox2.TabIndex = 2;
             // 
+            // comboBoxDriveList
+            // 
+            this.comboBoxDriveList.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboBoxDriveList.FormattingEnabled = true;
+            this.comboBoxDriveList.Location = new System.Drawing.Point(13, 13);
+            this.comboBoxDriveList.Name = "comboBoxDriveList";
+            this.comboBoxDriveList.Size = new System.Drawing.Size(121, 21);
+            this.comboBoxDriveList.TabIndex = 3;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.comboBoxDriveList);
             this.Controls.Add(this.textBox2);
             this.Controls.Add(this.textBoxProcessed);
             this.Controls.Add(this.buttonStart);
@@ -77,6 +88,7 @@
         private System.Windows.Forms.Button buttonStart;
         private System.Windows.Forms.TextBox textBoxProcessed;
         private System.Windows.Forms.TextBox textBox2;
+        private System.Windows.Forms.ComboBox comboBoxDriveList;
     }
 }
 
