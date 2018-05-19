@@ -1,22 +1,25 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
-using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading;
 using System.Windows.Forms;
 
 namespace PhotoSorter
 {
     public partial class Form1 : Form
     {
-        private int processedFiles = 0;
+        /// <summary>
+        /// Класс для хранения статистики по работе второго потока.</summary>
+        public class WorkState
+        {
+            public int filesPocessed { get; set; }
+        }
+
         //private Thread addDataRunner;
         private BackgroundWorker bgw = new BackgroundWorker();
         string root;
+        private int filesPocessed = 0;
 
         private void scanDrives()
         {
@@ -53,6 +56,7 @@ namespace PhotoSorter
         {
             if (!bgw.IsBusy)
             {
+                filesPocessed = 0;
                 //if (SaveCtrls(true))
                 //{
                 //    dt.Clear();
@@ -150,6 +154,9 @@ namespace PhotoSorter
                     {
                         File.Copy(file, newFullFolder + shortName);
                     }
+                    WorkState state = new WorkState();
+                    state.filesPocessed = filesPocessed++;
+                    bgw.ReportProgress(0, state);  // Обновляем информацию о результатах работы.
                     /*
                     TrackStat stat = new TrackStat();
 
@@ -204,11 +211,13 @@ namespace PhotoSorter
             }
         }
 
+
         /// <summary>
         /// Событие изменения прогресс-бара.</summary>
         void bgw_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
-            //WorkState state = (WorkState)e.UserState;
+            WorkState state = (WorkState)e.UserState;
+            textBoxProcessed.Text = state.filesPocessed.ToString();
             //dt.Rows.Add(state.arr);
             //labelCurrentFolder.Text = "Поиск: " + state.path;
             //_tracksFound++;
