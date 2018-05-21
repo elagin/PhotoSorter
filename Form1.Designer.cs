@@ -34,6 +34,7 @@
             this.comboBoxDriveList = new System.Windows.Forms.ComboBox();
             this.textBoxFolder = new System.Windows.Forms.TextBox();
             this.buttonBrowse = new System.Windows.Forms.Button();
+            this.buttonAbout = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // buttonStart
@@ -86,11 +87,22 @@
             this.buttonBrowse.UseVisualStyleBackColor = true;
             this.buttonBrowse.Click += new System.EventHandler(this.buttonBrowse_Click);
             // 
+            // buttonAbout
+            // 
+            this.buttonAbout.Location = new System.Drawing.Point(713, 8);
+            this.buttonAbout.Name = "buttonAbout";
+            this.buttonAbout.Size = new System.Drawing.Size(75, 23);
+            this.buttonAbout.TabIndex = 6;
+            this.buttonAbout.Text = "Автора";
+            this.buttonAbout.UseVisualStyleBackColor = true;
+            this.buttonAbout.Click += new System.EventHandler(this.buttonAbout_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.buttonAbout);
             this.Controls.Add(this.buttonBrowse);
             this.Controls.Add(this.textBoxFolder);
             this.Controls.Add(this.comboBoxDriveList);
@@ -112,6 +124,7 @@
         private System.Windows.Forms.ComboBox comboBoxDriveList;
         private System.Windows.Forms.TextBox textBoxFolder;
         private System.Windows.Forms.Button buttonBrowse;
+        private System.Windows.Forms.Button buttonAbout;
     }
 }
 
