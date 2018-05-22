@@ -1,4 +1,24 @@
-﻿using System;
+﻿/*
+ * PhotoSorter. Copy photos from flash and sort.
+ * Copyright © 2018 Pavel Elagin elagin.pasha@gmail.com
+
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <www.gnu.org/licenses/>
+ * 
+ * Source code: https://github.com/elagin/PhotoSorter
+ * 
+ */
+using System;
 using System.ComponentModel;
 using System.Data;
 using System.IO;
@@ -7,6 +27,7 @@ using System.Windows.Forms;
 
 namespace PhotoSorter
 {
+
     public partial class Form1 : Form
     {
         /// <summary>
@@ -41,6 +62,8 @@ namespace PhotoSorter
             }
             if (comboBoxDriveList.Items.Count > 0)
                 comboBoxDriveList.SelectedIndex = 0;
+            else
+                buttonStart.Enabled = false;
             if (comboBoxDriveList.Items.Count <= 1)
                 comboBoxDriveList.Enabled = false;
         }
@@ -301,9 +324,9 @@ namespace PhotoSorter
 
         private void buttonAbout_Click(object sender, EventArgs e)
         {
-            using (AboutForm about = new AboutForm())
+            using (FormAbout about = new FormAbout())
             {
-                DialogResult resDlg = about.ShowDialog();
+                about.ShowDialog();
             }
         }
     }
