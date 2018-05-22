@@ -27,7 +27,6 @@ using System.Windows.Forms;
 
 namespace PhotoSorter
 {
-
     public partial class Form1 : Form
     {
         /// <summary>
@@ -38,30 +37,31 @@ namespace PhotoSorter
             public long totalSize { get; set; }
         }
 
-        //private Thread addDataRunner;
+        private Settings settings = new Settings();
         private BackgroundWorker bgw = new BackgroundWorker();
+
+        // Win32 constants
+        private const int WM_DEVICECHANGE = 0x0219;
+
         string root;
         private int filesPocessed = 0;
         private long totalSize = 0;
-
-        private Settings settings = new Settings();
-
         private void scanDrives()
         {
             comboBoxDriveList.Items.Clear();
             DriveInfo[] allDrives = DriveInfo.GetDrives();
             foreach (DriveInfo d in allDrives)
             {
-                if (d.DriveType == DriveType.Removable /*&& d.VolumeLabel == "MyVolumeLabel"*/)
+                if (d.DriveType == DriveType.Removable)
                 {
                     comboBoxDriveList.Items.Add(d.RootDirectory);
-                    //FileInfo file = new FileInfo(all_path);
-                    //file.CopyTo(d.Name + @"\tst\test\testing");
                 }
-
             }
             if (comboBoxDriveList.Items.Count > 0)
+            {
                 comboBoxDriveList.SelectedIndex = 0;
+                buttonStart.Enabled = true;
+            }
             else
                 buttonStart.Enabled = false;
             if (comboBoxDriveList.Items.Count <= 1)
@@ -328,6 +328,14 @@ namespace PhotoSorter
             {
                 about.ShowDialog();
             }
+        }
+
+
+        protected override void WndProc(ref Message m)
+        {
+            if (m.Msg == WM_DEVICECHANGE)
+                scanDrives();
+            base.WndProc(ref m); // Переопределение оконной процедуры
         }
     }
 }
