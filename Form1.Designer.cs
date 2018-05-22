@@ -71,14 +71,14 @@ namespace PhotoSorter
             // 
             // textBoxProcessed
             // 
-            this.textBoxProcessed.Location = new System.Drawing.Point(144, 215);
+            this.textBoxProcessed.Location = new System.Drawing.Point(89, 116);
             this.textBoxProcessed.Name = "textBoxProcessed";
             this.textBoxProcessed.Size = new System.Drawing.Size(75, 20);
             this.textBoxProcessed.TabIndex = 1;
             // 
             // textBoxTotalSize
             // 
-            this.textBoxTotalSize.Location = new System.Drawing.Point(225, 215);
+            this.textBoxTotalSize.Location = new System.Drawing.Point(170, 116);
             this.textBoxTotalSize.Name = "textBoxTotalSize";
             this.textBoxTotalSize.Size = new System.Drawing.Size(75, 20);
             this.textBoxTotalSize.TabIndex = 2;
@@ -141,7 +141,7 @@ namespace PhotoSorter
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(800, 450);
+            this.ClientSize = new System.Drawing.Size(800, 164);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.buttonAbout);
@@ -152,7 +152,7 @@ namespace PhotoSorter
             this.Controls.Add(this.textBoxProcessed);
             this.Controls.Add(this.buttonStart);
             this.Name = "Form1";
-            this.Text = "Form1";
+            this.Text = "PhotoSorter v1.0";
             this.ResumeLayout(false);
             this.PerformLayout();
 

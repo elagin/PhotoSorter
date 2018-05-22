@@ -112,7 +112,7 @@ namespace PhotoSorter
         private void folderWalker(ref BackgroundWorker bgw, string path)
         {
             DirectoryInfo info = new DirectoryInfo(path);
-            string[] extensions = new[] { ".nef", ".jpg" };
+            string[] extensions = new[] { ".ari", ".dpx", ".arw", ".srf", ".sr2", ".bay", ".crw", ".cr2", ".dng", ".dcr", ".kdc", ".erf", ".3fr", ".mef", ".mrw", ".nef", ".nrw", ".orf", ".ptx", ".pef", ".raf", ".raw", ".rwl", ".dng", ".raw", ".rw2", ".r3d", ".srw", ".x3f", ".jpg" };
             FileInfo[] files = info.GetFiles().Where(f => extensions.Contains(f.Extension.ToLower())).ToArray();
             foreach (var fileInfo in files)
             {
