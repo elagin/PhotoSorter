@@ -35,6 +35,12 @@ namespace PhotoSorter
         {
             public int filesPocessed { get; set; }
             public long totalSize { get; set; }
+
+            public WorkState()
+            {
+                filesPocessed = 0;
+                totalSize = 0;
+            }
         }
 
         private Settings settings = new Settings();
@@ -94,64 +100,23 @@ namespace PhotoSorter
                 root = comboBoxDriveList.SelectedItem.ToString();
                 bgw.RunWorkerAsync();
                 buttonStart.Text = "Стоп";
-
-                //checkBox.Checked = false;
-                //_tracksFound = 0;
-                //dataGridView1.DataSource = dt;
-                //dataGridView1.Sort(dataGridView1.Columns[_sortColunm], ListSortDirection.Ascending);
-                //}
             }
             else
             {
                 bgw.CancelAsync();
             }
-            //ThreadStart addDataThreadStart = new ThreadStart(AddDataThreadLoop);
-            //addDataRunner = new Thread(addDataThreadStart);
-            //addDataRunner.Start();
-
-            /*
-            textBoxProcessed.Text = "0";
-            string inFolder = @"g:\DCIM\112D7000\";
-            string OufFolder = @"d:\фототест\";
-            string[] files = Directory.GetFiles(inFolder);
-            foreach (string file in files)
-            {
-                int pos = file.LastIndexOf('\\');
-                string shortName = file.Substring(pos + 1, file.Length - pos - 1);
-                DateTime date = File.GetCreationTimeUtc(file);
-                string[] aaa = date.GetDateTimeFormats();
-
-                string year = date.Year.ToString().Substring(2, 2);
-                string month = date.Month.ToString();
-                string day = date.Day.ToString();
-
-                //string newFolder = year + month + day;
-                string newFolder = aaa[46].Substring(2, aaa[46].IndexOf('T') - 2);
-                newFolder = newFolder.Replace("-", String.Empty);
-
-                string newFullFolder = OufFolder + newFolder + "\\";
-                if (!Directory.Exists(newFullFolder))
-                {
-                    Directory.CreateDirectory(newFullFolder);
-                }
-                if (!File.Exists(newFullFolder + shortName))
-                    File.Copy(file, newFullFolder + shortName);
-                textBoxProcessed.Text = (++processedFiles).ToString();
-            }
-            */
-            //System.IO.Directory directory = new System.IO.Directory();
         }
 
         /// <summary>
         /// Обрабатывает треки в указанной папке.</summary>
         private void folderWalker(ref BackgroundWorker bgw, string path)
         {
-            if (!bgw.CancellationPending)
+            DirectoryInfo info = new DirectoryInfo(path);
+            string[] extensions = new[] { ".nef", ".jpg" };
+            FileInfo[] files = info.GetFiles().Where(f => extensions.Contains(f.Extension.ToLower())).ToArray();
+            foreach (var fileInfo in files)
             {
-                DirectoryInfo info = new DirectoryInfo(path);
-                string[] extensions = new[] { ".nef", ".jpg" };
-                FileInfo[] files = info.GetFiles().Where(f => extensions.Contains(f.Extension.ToLower())).ToArray();
-                foreach (var fileInfo in files)
+                if (!bgw.CancellationPending)
                 {
                     WorkState state = new WorkState();
                     string file = fileInfo.FullName;
@@ -166,6 +131,7 @@ namespace PhotoSorter
                     if (!Directory.Exists(newFullFolder))
                         Directory.CreateDirectory(newFullFolder);
 
+                    long fileSize = 0;
                     FileInfo current = new FileInfo(file);
                     if (File.Exists(newFullFolder + shortName))
                     {
@@ -173,52 +139,50 @@ namespace PhotoSorter
                         FileInfo newFile = new FileInfo(file);
                         if (newFile.Length > old.Length)
                         {
-                            WorkState stateCopy = copyFile(file, newFullFolder + shortName);
-                            if (stateCopy != null)
+                            fileSize = copyFile(file, newFullFolder + shortName);
+                            if (fileSize > 0)
                             {
-                                state.filesPocessed++;
-                                state.totalSize = state.totalSize + stateCopy.totalSize;
+                                totalSize = totalSize + fileSize;
+                                state.totalSize = totalSize;
+                                state.filesPocessed = filesPocessed++;
                             }
-                            //File.Copy(file, newFullFolder + shortName, true);
-                            //totalSize = current.Length;
-                            //state.totalSize = current.Length;
                         }
                     }
                     else
                     {
-                        WorkState stateCopy = copyFile(file, newFullFolder + shortName);
-                        state.filesPocessed++;
-                        state.totalSize = state.totalSize + stateCopy.totalSize;
+                        fileSize = copyFile(file, newFullFolder + shortName);
+                        if (fileSize > 0)
+                        {
+                            totalSize = totalSize + fileSize;
+                            state.totalSize = totalSize;
+                            state.filesPocessed = filesPocessed++;
+                        }
                     }
-                    state.filesPocessed = filesPocessed++;
                     bgw.ReportProgress(0, state);  // Обновляем информацию о результатах работы.
                 }
-                // if (searchSubFolder)
-                foreach (var folder in info.GetDirectories())
-                    folderWalker(ref bgw, path + "\\" + folder.Name);
+                else
+                {
+                    Console.Out.WriteLine("-= Work is canceled =-");
+                }
+
             }
-            else
-            {
-                Console.Out.WriteLine("-= Work is canceled =-");
-            }
+            foreach (var folder in info.GetDirectories())
+                folderWalker(ref bgw, path + "\\" + folder.Name);
         }
 
-        private WorkState copyFile(string from, string to)
+        private long copyFile(string from, string to)
         {
             try
             {
                 File.Copy(from, to);
                 FileInfo current = new FileInfo(from);
-
-                WorkState state = new WorkState();
-                state.totalSize = current.Length;
-                return state;
+                return current.Length;
             }
             catch (Exception ex)
             {
                 const string caption = "Ошибка";
-                var result = MessageBox.Show(ex.Message, caption, MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return null;
+                MessageBox.Show(ex.Message, caption, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return 0;
             }
         }
 
@@ -242,13 +206,8 @@ namespace PhotoSorter
         void bgw_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
             WorkState state = (WorkState)e.UserState;
-            if (state.filesPocessed > 0)
-                textBoxProcessed.Text = state.filesPocessed.ToString();
-            if (state.totalSize > 0)
-            {
-                totalSize = totalSize + state.totalSize;
-                textBoxTotalSize.Text = SizeSuffix(totalSize, 1);
-            }
+            textBoxProcessed.Text = state.filesPocessed.ToString();
+            textBoxTotalSize.Text = SizeSuffix(totalSize, 1);
         }
 
         /// <summary>
@@ -257,7 +216,6 @@ namespace PhotoSorter
         {
             //sWatch.Stop();
             buttonStart.Text = "Старт";
-            //labelCurrentFolder.Text = "Поиск: завершен";
             //TimeSpan tSpan = sWatch.Elapsed;
         }
 
@@ -294,7 +252,7 @@ namespace PhotoSorter
         {
             if (decimalPlaces < 0) { throw new ArgumentOutOfRangeException("decimalPlaces"); }
             if (value < 0) { return "-" + SizeSuffix(-value); }
-            if (value == 0) { return string.Format("{0:n" + decimalPlaces + "} bytes", 0); }
+            if (value == 0) { return string.Format("{0:n" + decimalPlaces + "} байт", 0); }
 
             // mag is 0 for bytes, 1 for KB, 2, for MB, etc.
             int mag = (int)Math.Log(value, 1024);
