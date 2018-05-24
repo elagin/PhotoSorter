@@ -21,8 +21,10 @@
 using System;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace PhotoSorter
@@ -47,6 +49,7 @@ namespace PhotoSorter
         private BackgroundWorker bgw = new BackgroundWorker();
 
         private const int WM_DEVICECHANGE = 0x0219;
+        private const string CAPTION_ERROR = "Ошибка";
         static readonly string[] SizeSuffixes = { "bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB" };
 
         string root;
@@ -78,6 +81,10 @@ namespace PhotoSorter
         public Form1()
         {
             InitializeComponent();
+            System.Reflection.Assembly assembly = System.Reflection.Assembly.GetExecutingAssembly();
+            FileVersionInfo fvi = FileVersionInfo.GetVersionInfo(assembly.Location);
+            this.Text = "PhotoSorter " + fvi.FileVersion;
+
             settings.load();
             textBoxFolder.Text = settings.folderName;
             scanDrives();
@@ -103,9 +110,15 @@ namespace PhotoSorter
             }
             else
             {
-                bgw.CancelAsync();
+                isPause = true;
+                var res = MessageBox.Show("Прервать операцию?", "?", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                if(res == DialogResult.Yes)
+                    bgw.CancelAsync();
+                isPause = false;
             }
         }
+
+        private bool isPause = false;
 
         /// <summary>
         /// Обрабатывает треки в указанной папке.</summary>
@@ -114,30 +127,46 @@ namespace PhotoSorter
             DirectoryInfo info = new DirectoryInfo(path);
             string[] extensions = new[] { ".ari", ".dpx", ".arw", ".srf", ".sr2", ".bay", ".crw", ".cr2", ".dng", ".dcr", ".kdc", ".erf", ".3fr", ".mef", ".mrw", ".nef", ".nrw", ".orf", ".ptx", ".pef", ".raf", ".raw", ".rwl", ".dng", ".raw", ".rw2", ".r3d", ".srw", ".x3f", ".jpg" };
             FileInfo[] files = info.GetFiles().Where(f => extensions.Contains(f.Extension.ToLower())).ToArray();
-            foreach (var fileInfo in files)
+            for(int i=0; i < files.Length; i++)
             {
-                if (!bgw.CancellationPending)
+                var fileInfo = files[i];
+                try
                 {
-                    WorkState state = new WorkState();
-                    string file = fileInfo.FullName;
-                    int pos = file.LastIndexOf('\\');
-                    string shortName = file.Substring(pos + 1, file.Length - pos - 1);
-
-                    string[] timeFormat = File.GetCreationTimeUtc(file).GetDateTimeFormats();
-                    string newFolder = timeFormat[46].Substring(2, timeFormat[46].IndexOf('T') - 2);
-                    newFolder = newFolder.Replace("-", String.Empty);
-
-                    string newFullFolder = settings.folderName + newFolder + "\\";
-                    if (!Directory.Exists(newFullFolder))
-                        Directory.CreateDirectory(newFullFolder);
-
-                    long fileSize = 0;
-                    FileInfo current = new FileInfo(file);
-                    if (File.Exists(newFullFolder + shortName))
+                    if (!bgw.CancellationPending)
                     {
-                        FileInfo old = new FileInfo(newFullFolder + shortName);
-                        FileInfo newFile = new FileInfo(file);
-                        if (newFile.Length > old.Length)
+                        while (isPause)
+                            Thread.Sleep(500);
+                        WorkState state = new WorkState();
+                        string file = fileInfo.FullName;
+                        int pos = file.LastIndexOf('\\');
+                        string shortName = file.Substring(pos + 1, file.Length - pos - 1);
+
+                        string[] timeFormat = File.GetCreationTimeUtc(file).GetDateTimeFormats();
+                        string newFolder = timeFormat[46].Substring(2, timeFormat[46].IndexOf('T') - 2);
+                        newFolder = newFolder.Replace("-", String.Empty);
+
+                        string newFullFolder = settings.folderName + newFolder + "\\";
+                        if (!Directory.Exists(newFullFolder))
+                            Directory.CreateDirectory(newFullFolder);
+
+                        long fileSize = 0;
+                        FileInfo current = new FileInfo(file);
+                        if (File.Exists(newFullFolder + shortName))
+                        {
+                            FileInfo old = new FileInfo(newFullFolder + shortName);
+                            FileInfo newFile = new FileInfo(file);
+                            if (newFile.Length > old.Length)
+                            {
+                                fileSize = copyFile(file, newFullFolder + shortName);
+                                if (fileSize > 0)
+                                {
+                                    totalSize = totalSize + fileSize;
+                                    state.totalSize = totalSize;
+                                    state.filesPocessed = filesPocessed++;
+                                }
+                            }
+                        }
+                        else
                         {
                             fileSize = copyFile(file, newFullFolder + shortName);
                             if (fileSize > 0)
@@ -147,24 +176,26 @@ namespace PhotoSorter
                                 state.filesPocessed = filesPocessed++;
                             }
                         }
+                        bgw.ReportProgress(0, state);  // Обновляем информацию о результатах работы.
                     }
                     else
                     {
-                        fileSize = copyFile(file, newFullFolder + shortName);
-                        if (fileSize > 0)
-                        {
-                            totalSize = totalSize + fileSize;
-                            state.totalSize = totalSize;
-                            state.filesPocessed = filesPocessed++;
-                        }
+                        Console.Out.WriteLine("-= Work is canceled =-");
                     }
-                    bgw.ReportProgress(0, state);  // Обновляем информацию о результатах работы.
                 }
-                else
+                catch (Exception ex)
                 {
-                    Console.Out.WriteLine("-= Work is canceled =-");
+                    var btn = MessageBox.Show(fileInfo.FullName + Environment.NewLine + ex.Message, CAPTION_ERROR, MessageBoxButtons.AbortRetryIgnore, MessageBoxIcon.Error);
+                    switch (btn)
+                    {
+                        case DialogResult.Retry:
+                            i--;
+                            break;
+                        case DialogResult.Abort:
+                            bgw.CancelAsync();
+                            break;
+                    }
                 }
-
             }
             foreach (var folder in info.GetDirectories())
                 folderWalker(ref bgw, path + "\\" + folder.Name);
@@ -180,8 +211,7 @@ namespace PhotoSorter
             }
             catch (Exception ex)
             {
-                const string caption = "Ошибка";
-                MessageBox.Show(ex.Message, caption, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(ex.Message, CAPTION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return 0;
             }
         }
@@ -196,8 +226,7 @@ namespace PhotoSorter
             }
             catch (Exception ex)
             {
-                const string caption = "Ошибка";
-                MessageBox.Show(ex.Message, caption, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(ex.Message, CAPTION_ERROR, MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -216,6 +245,7 @@ namespace PhotoSorter
         {
             //sWatch.Stop();
             buttonStart.Text = "Старт";
+            MessageBox.Show("Работа завершена, хозяин.", "Готово", MessageBoxButtons.OK, MessageBoxIcon.Information);
             //TimeSpan tSpan = sWatch.Elapsed;
         }
 

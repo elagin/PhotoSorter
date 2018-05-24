@@ -68,7 +68,7 @@ namespace PhotoSorter
 
 		private void linkLabel2_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
 		{
-			Process.Start("https://sourceforge.net/projects/photosorter/");
+			Process.Start("https://sourceforge.net/projects/photo-sorter");
 		}
 
 		private void linkLabel3_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)

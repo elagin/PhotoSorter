@@ -115,11 +115,10 @@ namespace PhotoSorter
             this.linkLabel2.AutoSize = true;
             this.linkLabel2.Location = new System.Drawing.Point(279, 266);
             this.linkLabel2.Name = "linkLabel2";
-            this.linkLabel2.Size = new System.Drawing.Size(217, 13);
+            this.linkLabel2.Size = new System.Drawing.Size(225, 13);
             this.linkLabel2.TabIndex = 6;
             this.linkLabel2.TabStop = true;
-            this.linkLabel2.Text = "https://sourceforge.net/projects/photosorter";
-            this.linkLabel2.Visible = false;
+            this.linkLabel2.Text = "https://sourceforge.net/projects/photo-sorter/";
             this.linkLabel2.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkLabel2_LinkClicked);
             // 
             // label3
@@ -130,7 +129,6 @@ namespace PhotoSorter
             this.label3.Size = new System.Drawing.Size(126, 13);
             this.label3.TabIndex = 7;
             this.label3.Text = "Скачать новую версию:";
-            this.label3.Visible = false;
             // 
             // label4
             // 
